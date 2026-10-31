@@ -1,0 +1,169 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>런달결산</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Black+Han+Sans&family=Nanum+Pen+Script&family=Noto+Sans+KR:wght@400;500;700;900&family=Oswald:wght@500;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div class="toolbar">
+  <button id="saveBtn" type="button">이미지로 저장</button>
+</div>
+
+<div class="stage" id="stage">
+  <main class="card" id="card">
+    <!-- 배경: 해안도로 노을 -->
+    <svg class="bg" viewBox="0 0 1080 1920" preserveAspectRatio="xMidYMid slice" aria-hidden="true">
+      <defs>
+        <linearGradient id="sky" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0" stop-color="#0b1420"/>
+          <stop offset=".42" stop-color="#1d2a3a"/>
+          <stop offset=".62" stop-color="#7a4a35"/>
+          <stop offset=".72" stop-color="#e3954d"/>
+          <stop offset=".76" stop-color="#ffcf7d"/>
+        </linearGradient>
+        <radialGradient id="sun" cx=".72" cy=".74" r=".35">
+          <stop offset="0" stop-color="#fff2c4" stop-opacity=".95"/>
+          <stop offset=".12" stop-color="#ffc56b" stop-opacity=".7"/>
+          <stop offset="1" stop-color="#ff9a3d" stop-opacity="0"/>
+        </radialGradient>
+        <linearGradient id="sea" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0" stop-color="#c9864a"/>
+          <stop offset="1" stop-color="#1a2230"/>
+        </linearGradient>
+        <linearGradient id="road" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0" stop-color="#2a2a2e"/>
+          <stop offset="1" stop-color="#0c0c0e"/>
+        </linearGradient>
+        <linearGradient id="shade" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0" stop-color="#05080d" stop-opacity=".55"/>
+          <stop offset=".5" stop-color="#05080d" stop-opacity=".25"/>
+          <stop offset="1" stop-color="#05080d" stop-opacity=".85"/>
+        </linearGradient>
+      </defs>
+      <rect width="1080" height="1920" fill="url(#sky)"/>
+      <rect width="1080" height="1920" fill="url(#sun)"/>
+      <path d="M0 1410 L120 1395 L210 1402 L330 1380 L420 1392 L520 1386 L560 1400 L0 1420Z" fill="#3a2a26" opacity=".7"/>
+      <rect y="1420" width="1080" height="200" fill="url(#sea)"/>
+      <g stroke="#ffe0a3" stroke-linecap="round" opacity=".55">
+        <line x1="700" y1="1440" x2="860" y2="1440" stroke-width="3"/>
+        <line x1="660" y1="1470" x2="900" y2="1470" stroke-width="3"/>
+        <line x1="620" y1="1505" x2="960" y2="1505" stroke-width="2"/>
+        <line x1="560" y1="1545" x2="1010" y2="1545" stroke-width="2"/>
+      </g>
+      <path d="M-200 1920 L520 1560 L620 1560 L1280 1920Z" fill="url(#road)"/>
+      <g fill="#e9e3d2" opacity=".75">
+        <path d="M566 1575 L574 1575 L576 1600 L564 1600Z"/>
+        <path d="M562 1630 L578 1630 L582 1680 L558 1680Z"/>
+        <path d="M554 1730 L586 1730 L594 1820 L546 1820Z"/>
+      </g>
+      <rect width="1080" height="1920" fill="url(#shade)"/>
+    </svg>
+
+    <header class="head">
+      <div class="head-text">
+        <p class="period" id="period"></p>
+        <h1 class="title"><span class="lime">런</span>달결산</h1>
+        <p class="hand" id="headline"></p>
+      </div>
+      <div class="badge">
+        <span class="badge-num" id="badgeNum"></span>
+        <span class="badge-unit">KM CLUB</span>
+        <span class="badge-sub" id="badgeSub"></span>
+      </div>
+    </header>
+
+    <section class="panel summary">
+      <div class="total">
+        <p class="label"><i class="ic ic-run"></i>총 거리</p>
+        <p class="total-num"><span id="totalKm">0</span><small>km</small></p>
+        <p class="total-sub" id="totalSub"></p>
+      </div>
+      <ul class="kpis">
+        <li><i class="ic ic-shoe"></i><div><p class="label">러닝 횟수</p><p class="kpi"><span id="runCount"></span><small>회</small></p></div></li>
+        <li><i class="ic ic-clock"></i><div><p class="label">총 시간</p><p class="kpi" id="totalTime"></p></div></li>
+        <li><i class="ic ic-pace"></i><div><p class="label">평균 페이스</p><p class="kpi"><span id="avgPace"></span><small>/km</small></p></div></li>
+        <li><i class="ic ic-fire"></i><div><p class="label">총 칼로리</p><p class="kpi"><span id="totalKcal"></span><small>kcal</small></p></div></li>
+      </ul>
+    </section>
+
+    <section class="panel chart-panel">
+      <div class="panel-head">
+        <h2><span><span class="days"></span>일 러닝 한눈에 보기</span></h2>
+        <p class="legend"><span class="sw sw-avg"></span><span id="avgLabel"></span> <span class="sw sw-real"></span>기록 <span id="estLegend"><span class="sw sw-est"></span>누락분 추정</span> <span class="unit">(km)</span></p>
+      </div>
+      <svg id="chart" class="chart" viewBox="0 0 960 300" role="img" aria-label="일별 러닝 거리 막대 그래프"></svg>
+    </section>
+
+    <section class="row3">
+      <div class="panel mini">
+        <p class="label"><i class="ic ic-run"></i>주간 평균</p>
+        <p class="mini-num"><span id="weeklyAvg"></span><small>km</small></p>
+        <p class="mini-sub">주 <span id="perWeek"></span>회 수준의 꾸준한 러닝!</p>
+      </div>
+      <div class="panel mini">
+        <p class="label"><i class="ic ic-cal"></i>러닝 빈도</p>
+        <p class="mini-num"><span class="days"></span><small>일 중</small> <span id="runDays"></span><small>일</small></p>
+        <p class="mini-sub">약 <span id="runRate"></span>%의 날을 달렸어요!</p>
+      </div>
+      <div class="panel mini">
+        <p class="label"><i class="ic ic-trend"></i>첫 주 vs 마지막 주</p>
+        <p class="mini-num"><span id="wFirst"></span><small>→</small><span id="wLast" class="lime"></span><small>km</small></p>
+        <p class="mini-sub" id="wGrowth"></p>
+      </div>
+    </section>
+
+    <section class="row3 tall">
+      <div class="panel">
+        <h3>하이라이트</h3>
+        <ul class="hl">
+          <li><i class="ic ic-road"></i><div><p class="hl-t">최장 거리</p><p class="hl-v" id="hlLong"></p></div></li>
+          <li><i class="ic ic-bolt"></i><div><p class="hl-t">최고 페이스</p><p class="hl-v" id="hlFast"></p></div></li>
+          <li><i class="ic ic-target"></i><div><p class="hl-t">10km 이상</p><p class="hl-v" id="hl10k"></p></div></li>
+          <li><i class="ic ic-medal"></i><div><p class="hl-t">10km+ 최고 페이스</p><p class="hl-v" id="hlBest10"></p></div></li>
+        </ul>
+      </div>
+      <div class="panel score">
+        <h3>종합 평가</h3>
+        <div class="ring">
+          <svg viewBox="0 0 200 200" aria-hidden="true">
+            <circle cx="100" cy="100" r="84" class="ring-bg"/>
+            <circle cx="100" cy="100" r="84" class="ring-fg" id="ringFg"/>
+          </svg>
+          <p class="ring-num"><span id="scoreNum"></span><small>/10</small></p>
+        </div>
+        <p class="stars" id="stars"></p>
+        <p class="hand small" id="scoreText"></p>
+      </div>
+      <div class="panel">
+        <h3><i class="ic ic-flag"></i>다음 목표</h3>
+        <div class="goal">
+          <em class="pill" id="goalStatus"></em>
+          <p class="goal-num"><span id="goalKm"></span><small>km</small></p>
+          <p class="goal-t"><span id="goalDays"></span>일 챌린지</p>
+          <p class="goal-date" id="goalDate"></p>
+          <ul class="goal-meta">
+            <li><span>하루 평균</span><b id="goalDaily"></b></li>
+            <li><span>이번 기록 대비</span><b class="lime" id="goalDiff"></b></li>
+          </ul>
+        </div>
+        <p class="hand small">함께 다음 목표를 향해!</p>
+      </div>
+    </section>
+
+    <footer class="foot">
+      <p class="quote"><b>“</b> <span id="quote"></span> <b>”</b></p>
+      <p class="note" id="note"></p>
+    </footer>
+  </main>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<script src="data.js"></script>
+<script src="script.js"></script>
+</body>
+</html>

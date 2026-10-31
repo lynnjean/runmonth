@@ -1,0 +1,243 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="description" content="러닝 앱 스크린샷으로 한 달 러닝 결산 이미지를 만드는 도구">
+<meta name="theme-color" content="#0a0f15">
+<title>런달결산 메이커</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 64 64%27%3E%3Crect width=%2764%27 height=%2764%27 rx=%2714%27 fill=%27%230a0f15%27/%3E%3Ctext x=%2732%27 y=%2746%27 font-size=%2738%27 font-weight=%27900%27 text-anchor=%27middle%27 fill=%27%23c6f432%27 font-family=%27sans-serif%27%3E런%3C/text%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Black+Han+Sans&family=Nanum+Pen+Script&family=Noto+Sans+KR:wght@400;500;700;900&family=Oswald:wght@500;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+<div class="app">
+  <header class="app-head">
+    <h1><span>런</span>달결산 메이커</h1>
+    <p>러닝 앱 스크린샷을 올리면 기록을 자동으로 읽어 결산 이미지를 만들어요. 스크린샷은 서버로 보내지 않고 이 브라우저 안에서만 읽어요.</p>
+  </header>
+
+  <div class="app-grid">
+    <div class="steps">
+      <section class="step" aria-labelledby="s1">
+        <div class="step-h"><span class="step-n">1</span><h2 id="s1">스크린샷 올리기</h2></div>
+        <label class="drop" id="drop" for="fileInput">
+          <b>운동 기록 스크린샷을 여기에 끌어다 놓거나 눌러서 선택</b>
+          <span>Apple 운동 앱 · Nike Run Club 등, 한 장에 러닝 1회</span>
+        </label>
+        <input type="file" id="fileInput" accept="image/png,image/jpeg,image/webp" multiple hidden>
+        <div class="thumbs" id="thumbs" hidden></div>
+        <div class="row">
+          <button class="btn primary" id="readBtn" type="button" disabled>기록 읽기</button>
+          <button class="btn ghost" id="stopBtn" type="button" hidden>중지</button>
+          <span class="status" id="readStatus" role="status"></span>
+        </div>
+        <p class="hint" id="readHint">처음 한 번은 글자 인식 데이터(몇 MB)를 받느라 조금 걸려요. 기록을 읽으면 아래 표의 내용이 새 기록으로 바뀌어요.</p>
+      </section>
+
+      <section class="step" aria-labelledby="s2">
+        <div class="step-h"><span class="step-n">2</span><h2 id="s2">기록 확인</h2></div>
+        <p class="hint" id="sourceHint"></p>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>날짜</th><th>거리(km)</th><th>시간</th><th>칼로리</th><th>페이스</th><th></th></tr></thead>
+            <tbody id="runRows"></tbody>
+          </table>
+        </div>
+        <div class="totals" id="totals"></div>
+        <div class="add">
+          <p class="add-t">누락된 기록 추가 <span class="hint">· 시간과 칼로리는 페이스로 추정</span></p>
+          <div class="field"><label for="addDate">날짜</label><input type="date" id="addDate"></div>
+          <div class="field"><label for="addKm">거리(km)</label><input type="number" id="addKm" step="0.01" min="0" placeholder="4"></div>
+          <div class="field"><label for="addPace">페이스</label><input type="text" id="addPace" placeholder="5:50"></div>
+          <button class="btn" id="addBtn" type="button">추가</button>
+        </div>
+        <div class="row">
+          <button class="btn ghost" id="clearBtn" type="button">표 비우기</button>
+          <span class="status" id="addStatus" role="status"></span>
+        </div>
+      </section>
+
+      <section class="step" aria-labelledby="s3">
+        <div class="step-h"><span class="step-n">3</span><h2 id="s3">결산 설정</h2></div>
+        <div class="fields">
+          <div class="field"><label for="fStart">시작일</label><input type="date" id="fStart"></div>
+          <div class="field"><label for="fEnd">종료일</label><input type="date" id="fEnd"></div>
+          <div class="field"><label for="fBadge">배지 아래 문구</label><input type="text" id="fBadge" maxlength="24" placeholder="JEJU RUNNING"></div>
+          <div class="field"><label for="fScore">종합 평가 (10점 만점)</label><input type="number" id="fScore" min="0" max="10" step="0.5"></div>
+          <div class="field wide"><label for="fScoreText">평가 한마디</label><input type="text" id="fScoreText" maxlength="20"></div>
+          <p class="sub-h">다음 목표</p>
+          <div class="field"><label for="gKm">목표 거리(km)</label><input type="number" id="gKm" min="1" step="1"></div>
+          <div class="field"><label for="gDays">기간(일)</label><input type="number" id="gDays" min="1" step="1"></div>
+          <div class="field"><label for="gStart">시작일</label><input type="date" id="gStart"></div>
+          <div class="field"><label for="gStatus">상태</label>
+            <select id="gStatus"><option>진행 중</option><option>시작 예정</option><option>도전!</option></select>
+          </div>
+          <div class="field wide"><label for="fQuote">하단 문구</label><input type="text" id="fQuote" maxlength="40"></div>
+        </div>
+      </section>
+    </div>
+
+    <aside class="preview" aria-label="결산 미리보기">
+      <div class="stage" id="stage">
+<main class="card" id="card">
+    <!-- 배경: 해안도로 노을 -->
+    <svg class="bg" viewBox="0 0 1080 1920" preserveAspectRatio="xMidYMid slice" aria-hidden="true">
+      <defs>
+        <linearGradient id="sky" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0" stop-color="#0b1420"/>
+          <stop offset=".42" stop-color="#1d2a3a"/>
+          <stop offset=".62" stop-color="#7a4a35"/>
+          <stop offset=".72" stop-color="#e3954d"/>
+          <stop offset=".76" stop-color="#ffcf7d"/>
+        </linearGradient>
+        <radialGradient id="sun" cx=".72" cy=".74" r=".35">
+          <stop offset="0" stop-color="#fff2c4" stop-opacity=".95"/>
+          <stop offset=".12" stop-color="#ffc56b" stop-opacity=".7"/>
+          <stop offset="1" stop-color="#ff9a3d" stop-opacity="0"/>
+        </radialGradient>
+        <linearGradient id="sea" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0" stop-color="#c9864a"/>
+          <stop offset="1" stop-color="#1a2230"/>
+        </linearGradient>
+        <linearGradient id="road" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0" stop-color="#2a2a2e"/>
+          <stop offset="1" stop-color="#0c0c0e"/>
+        </linearGradient>
+        <linearGradient id="shade" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0" stop-color="#05080d" stop-opacity=".55"/>
+          <stop offset=".5" stop-color="#05080d" stop-opacity=".25"/>
+          <stop offset="1" stop-color="#05080d" stop-opacity=".85"/>
+        </linearGradient>
+      </defs>
+      <rect width="1080" height="1920" fill="url(#sky)"/>
+      <rect width="1080" height="1920" fill="url(#sun)"/>
+      <path d="M0 1410 L120 1395 L210 1402 L330 1380 L420 1392 L520 1386 L560 1400 L0 1420Z" fill="#3a2a26" opacity=".7"/>
+      <rect y="1420" width="1080" height="200" fill="url(#sea)"/>
+      <g stroke="#ffe0a3" stroke-linecap="round" opacity=".55">
+        <line x1="700" y1="1440" x2="860" y2="1440" stroke-width="3"/>
+        <line x1="660" y1="1470" x2="900" y2="1470" stroke-width="3"/>
+        <line x1="620" y1="1505" x2="960" y2="1505" stroke-width="2"/>
+        <line x1="560" y1="1545" x2="1010" y2="1545" stroke-width="2"/>
+      </g>
+      <path d="M-200 1920 L520 1560 L620 1560 L1280 1920Z" fill="url(#road)"/>
+      <g fill="#e9e3d2" opacity=".75">
+        <path d="M566 1575 L574 1575 L576 1600 L564 1600Z"/>
+        <path d="M562 1630 L578 1630 L582 1680 L558 1680Z"/>
+        <path d="M554 1730 L586 1730 L594 1820 L546 1820Z"/>
+      </g>
+      <rect width="1080" height="1920" fill="url(#shade)"/>
+    </svg>
+
+    <header class="head">
+      <div class="head-text">
+        <p class="period" id="period"></p>
+        <h1 class="title"><span class="lime">런</span>달결산</h1>
+        <p class="hand" id="headline"></p>
+      </div>
+      <div class="badge">
+        <span class="badge-num" id="badgeNum"></span>
+        <span class="badge-unit">KM CLUB</span>
+        <span class="badge-sub" id="badgeSub"></span>
+      </div>
+    </header>
+
+    <section class="panel summary">
+      <div class="total">
+        <p class="label"><i class="ic ic-run"></i>총 거리</p>
+        <p class="total-num"><span id="totalKm">0</span><small>km</small></p>
+        <p class="total-sub" id="totalSub"></p>
+      </div>
+      <ul class="kpis">
+        <li><i class="ic ic-shoe"></i><div><p class="label">러닝 횟수</p><p class="kpi"><span id="runCount"></span><small>회</small></p></div></li>
+        <li><i class="ic ic-clock"></i><div><p class="label">총 시간</p><p class="kpi" id="totalTime"></p></div></li>
+        <li><i class="ic ic-pace"></i><div><p class="label">평균 페이스</p><p class="kpi"><span id="avgPace"></span><small>/km</small></p></div></li>
+        <li><i class="ic ic-fire"></i><div><p class="label">총 칼로리</p><p class="kpi"><span id="totalKcal"></span><small>kcal</small></p></div></li>
+      </ul>
+    </section>
+
+    <section class="panel chart-panel">
+      <div class="panel-head">
+        <h2><span><span class="days"></span>일 러닝 한눈에 보기</span></h2>
+        <p class="legend"><span class="sw sw-avg"></span><span id="avgLabel"></span> <span class="sw sw-real"></span>기록 <span id="estLegend"><span class="sw sw-est"></span>누락분 추정</span> <span class="unit">(km)</span></p>
+      </div>
+      <svg id="chart" class="chart" viewBox="0 0 960 300" role="img" aria-label="일별 러닝 거리 막대 그래프"></svg>
+    </section>
+
+    <section class="row3">
+      <div class="panel mini">
+        <p class="label"><i class="ic ic-run"></i>주간 평균</p>
+        <p class="mini-num"><span id="weeklyAvg"></span><small>km</small></p>
+        <p class="mini-sub">주 <span id="perWeek"></span>회 수준의 꾸준한 러닝!</p>
+      </div>
+      <div class="panel mini">
+        <p class="label"><i class="ic ic-cal"></i>러닝 빈도</p>
+        <p class="mini-num"><span class="days"></span><small>일 중</small> <span id="runDays"></span><small>일</small></p>
+        <p class="mini-sub">약 <span id="runRate"></span>%의 날을 달렸어요!</p>
+      </div>
+      <div class="panel mini">
+        <p class="label"><i class="ic ic-trend"></i>첫 주 vs 마지막 주</p>
+        <p class="mini-num"><span id="wFirst"></span><small>→</small><span id="wLast" class="lime"></span><small>km</small></p>
+        <p class="mini-sub" id="wGrowth"></p>
+      </div>
+    </section>
+
+    <section class="row3 tall">
+      <div class="panel">
+        <h3>하이라이트</h3>
+        <ul class="hl">
+          <li><i class="ic ic-road"></i><div><p class="hl-t">최장 거리</p><p class="hl-v" id="hlLong"></p></div></li>
+          <li><i class="ic ic-bolt"></i><div><p class="hl-t">최고 페이스</p><p class="hl-v" id="hlFast"></p></div></li>
+          <li><i class="ic ic-target"></i><div><p class="hl-t">10km 이상</p><p class="hl-v" id="hl10k"></p></div></li>
+          <li><i class="ic ic-medal"></i><div><p class="hl-t">10km+ 최고 페이스</p><p class="hl-v" id="hlBest10"></p></div></li>
+        </ul>
+      </div>
+      <div class="panel score">
+        <h3>종합 평가</h3>
+        <div class="ring">
+          <svg viewBox="0 0 200 200" aria-hidden="true">
+            <circle cx="100" cy="100" r="84" class="ring-bg"/>
+            <circle cx="100" cy="100" r="84" class="ring-fg" id="ringFg"/>
+          </svg>
+          <p class="ring-num"><span id="scoreNum"></span><small>/10</small></p>
+        </div>
+        <p class="stars" id="stars"></p>
+        <p class="hand small" id="scoreText"></p>
+      </div>
+      <div class="panel">
+        <h3><i class="ic ic-flag"></i>다음 목표</h3>
+        <div class="goal">
+          <em class="pill" id="goalStatus"></em>
+          <p class="goal-num"><span id="goalKm"></span><small>km</small></p>
+          <p class="goal-t"><span id="goalDays"></span>일 챌린지</p>
+          <p class="goal-date" id="goalDate"></p>
+          <ul class="goal-meta">
+            <li><span>하루 평균</span><b id="goalDaily"></b></li>
+            <li><span>이번 기록 대비</span><b class="lime" id="goalDiff"></b></li>
+          </ul>
+        </div>
+        <p class="hand small">함께 다음 목표를 향해!</p>
+      </div>
+    </section>
+
+    <footer class="foot">
+      <p class="quote"><b>“</b> <span id="quote"></span> <b>”</b></p>
+      <p class="note" id="note"></p>
+    </footer>
+  </main>
+      </div>
+      <button class="btn primary" id="saveBtn" type="button">이미지로 저장 (1080×1920 PNG)</button>
+      <span class="status" id="saveStatus" role="status"></span>
+    </aside>
+  </div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/tesseract.js@5.1.1/dist/tesseract.min.js"></script>
+<script src="js/card.js"></script>
+<script src="js/ocr.js"></script>
+<script src="js/app.js"></script>
+</body>
+</html>
